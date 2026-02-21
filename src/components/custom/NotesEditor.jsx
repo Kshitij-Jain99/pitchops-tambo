@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+const NOTES_TABS = ["write", "ops", "history", "exports"];
 
 export function NotesEditor({
   title = "Founder Brain Dump",
@@ -9,6 +10,7 @@ export function NotesEditor({
   showSections = true,
   storageKey = "pitchops_notes_editor",
 }) {
+  const [activeTab, setActiveTab] = useState("write");
   const NOTE_TEMPLATES = {
     investor_call: {
       label: "Investor Call",
@@ -438,6 +440,28 @@ export function NotesEditor({
         </span>
       </div>
 
+      <div className="mt-3 flex flex-wrap gap-2">
+        {NOTES_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? "po-primary-btn capitalize" : "po-secondary-btn capitalize"}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="sticky top-0 z-10 mt-3 grid gap-2 rounded-md border border-border/70 bg-background p-3 text-xs text-muted-foreground md:grid-cols-4">
+        <p>Status: {isSaved ? "Saved locally" : "Editing"}</p>
+        <p>Tags: {tags.length}</p>
+        <p>Pins: {pins.length}</p>
+        <p>Open actions: {openActionCount}</p>
+      </div>
+
+      {activeTab === "write" && (
+        <>
       <div className="mt-3 rounded-md border border-border/70 bg-background p-3">
         <p className="text-xs text-muted-foreground">Meeting Note Templates</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -455,7 +479,7 @@ export function NotesEditor({
           <button
             type="button"
             onClick={onApplyTemplate}
-            className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+            className="po-primary-btn h-8 px-3"
           >
             Apply Template
           </button>
@@ -485,7 +509,7 @@ export function NotesEditor({
           <button
             type="button"
             onClick={onAddTag}
-            className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+            className="po-primary-btn h-8 px-3"
           >
             Add Tag
           </button>
@@ -535,14 +559,14 @@ export function NotesEditor({
         <button
           type="button"
           onClick={onPinSelectedNoteText}
-          className="rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground hover:bg-muted"
+          className="po-primary-btn"
         >
           Pin Selected Text
         </button>
         <button
           type="button"
           onClick={onExtractActionFromSelection}
-          className="rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground hover:bg-muted"
+          className="po-primary-btn"
         >
           Extract Action
         </button>
@@ -602,7 +626,11 @@ export function NotesEditor({
           </label>
         </div>
       )}
+        </>
+      )}
 
+      {activeTab === "ops" && (
+        <>
       <div className="mt-4 rounded-md border border-border/70 bg-background p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">Pinned Highlights (Top 5)</p>
@@ -617,7 +645,7 @@ export function NotesEditor({
             <button
               type="button"
               onClick={onAddPin}
-              className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+              className="po-primary-btn h-8 px-3"
             >
               Add Highlight
             </button>
@@ -681,7 +709,7 @@ export function NotesEditor({
         <button
           type="button"
           onClick={onAddDecision}
-          className="mt-2 h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+          className="mt-2 po-primary-btn h-8 px-3"
         >
           Add Decision
         </button>
@@ -744,7 +772,7 @@ export function NotesEditor({
         <button
           type="button"
           onClick={() => onAddAction()}
-          className="mt-2 h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+          className="mt-2 po-primary-btn h-8 px-3"
         >
           Add Action
         </button>
@@ -778,8 +806,11 @@ export function NotesEditor({
           )}
         </div>
       </div>
+        </>
+      )}
 
-      <div className="mt-4 rounded-md border border-border/70 bg-background p-3">
+      {activeTab === "history" && (
+        <div className="mt-4 rounded-md border border-border/70 bg-background p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">History and Search</p>
           <p className="text-xs text-muted-foreground">Snapshots: {history.length}</p>
@@ -814,27 +845,30 @@ export function NotesEditor({
             <p className="text-xs text-muted-foreground">No snapshots match your filter.</p>
           )}
         </div>
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 rounded-md border border-border/70 bg-background p-3">
+      {activeTab === "exports" && (
+        <div className="mt-4 rounded-md border border-border/70 bg-background p-3">
         <p className="text-xs text-muted-foreground">Exports</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <button
             type="button"
             onClick={onExportMarkdown}
-            className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+            className="po-primary-btn h-8 px-3"
           >
             Export Markdown
           </button>
           <button
             type="button"
             onClick={onCopyStructuredSummary}
-            className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+            className="po-secondary-btn h-8 px-3"
           >
             Copy Structured Summary
           </button>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

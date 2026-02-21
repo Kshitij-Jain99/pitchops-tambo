@@ -7,6 +7,7 @@ const SCENARIOS = [
   { id: "best", label: "Best", growthDelta: 5, churnDelta: -0.8, burnMultiplier: 0.9 },
   { id: "worst", label: "Worst", growthDelta: -6, churnDelta: 1.3, burnMultiplier: 1.15 },
 ];
+const DASHBOARD_TABS = ["overview", "risk", "modeling", "controls"];
 
 function formatCurrency(value) {
   return `$${Math.round(Number(value) || 0).toLocaleString()}`;
@@ -36,13 +37,13 @@ function miniSparklinePoints(values) {
 
 function statusTone(value, target, direction = "high") {
   if (direction === "low") {
-    if (value <= target) return "text-emerald-700";
-    if (value <= target * 1.15) return "text-amber-700";
-    return "text-red-700";
+    if (value <= target) return "po-status-ok";
+    if (value <= target * 1.15) return "po-status-warn";
+    return "po-status-risk";
   }
-  if (value >= target) return "text-emerald-700";
-  if (value >= target * 0.9) return "text-amber-700";
-  return "text-red-700";
+  if (value >= target) return "po-status-ok";
+  if (value >= target * 0.9) return "po-status-warn";
+  return "po-status-risk";
 }
 
 function trendSeries(currentValue, growthFactor, period) {
@@ -90,6 +91,7 @@ export function KPIDashboard({
   runwayMonths = 14,
   showSliders = true,
 }) {
+  const [activeTab, setActiveTab] = useState("overview");
   const [selectedPeriod, setSelectedPeriod] = useState("30d");
   const [lastUpdated, setLastUpdated] = useState(new Date().toISOString());
   const [metrics, setMetrics] = useState({
@@ -304,7 +306,7 @@ export function KPIDashboard({
           <button
             type="button"
             onClick={() => setLastUpdated(new Date().toISOString())}
-            className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+            className="po-primary-btn h-8 px-3"
           >
             Refresh timestamp
           </button>
@@ -315,7 +317,21 @@ export function KPIDashboard({
         Last updated: {new Date(lastUpdated).toLocaleString()}
       </p>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="mt-3 flex flex-wrap gap-2">
+        {DASHBOARD_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? "po-primary-btn capitalize" : "po-secondary-btn capitalize"}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "overview" && (
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
         {cards.map((card) => {
           const tone = statusTone(metrics[card.key], targets[card.key], card.direction);
           return (
@@ -348,9 +364,11 @@ export function KPIDashboard({
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
+      {activeTab === "overview" && (
+        <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Historical Trends and Delta
         </p>
@@ -379,9 +397,11 @@ export function KPIDashboard({
             );
           })}
         </div>
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
+      {activeTab === "overview" && (
+        <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Unit Economics
         </p>
@@ -392,9 +412,11 @@ export function KPIDashboard({
           <p>Payback: {derived.paybackMonths.toFixed(1)} mo</p>
           <p>Magic #: {derived.magicNumber.toFixed(2)}</p>
         </div>
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
+      {activeTab === "modeling" && (
+        <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Runway Scenario Modeling
         </p>
@@ -406,9 +428,11 @@ export function KPIDashboard({
             </div>
           ))}
         </div>
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      {activeTab === "risk" && (
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div className="rounded-lg border border-border/60 bg-background p-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Concentration and Risk Indicators
@@ -420,12 +444,12 @@ export function KPIDashboard({
           <p className="mt-2 text-xs text-muted-foreground">Single-point failure watch</p>
           {singlePointFailures.length ? (
             singlePointFailures.map((risk) => (
-              <p key={risk} className="text-xs text-amber-700">
+              <p key={risk} className="text-xs po-status-warn">
                 {risk}
               </p>
             ))
           ) : (
-            <p className="text-xs text-emerald-700">No critical concentration risk triggered.</p>
+            <p className="text-xs po-status-ok">No critical concentration risk triggered.</p>
           )}
         </div>
 
@@ -446,9 +470,11 @@ export function KPIDashboard({
             </p>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
+      {activeTab === "risk" && (
+        <div className="mt-4 rounded-lg border border-border/60 bg-background p-3">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Alert Rules and Watchlist
         </p>
@@ -458,19 +484,20 @@ export function KPIDashboard({
               key={alert.label}
               className={`rounded-md border border-border/60 px-2 py-1 text-xs ${
                 alert.severity === "at risk"
-                  ? "text-red-700"
+                  ? "po-status-risk"
                   : alert.severity === "warning"
-                    ? "text-amber-700"
-                    : "text-emerald-700"
+                    ? "po-status-warn"
+                    : "po-status-ok"
               }`}
             >
               {alert.severity.toUpperCase()}: {alert.label}
             </p>
           ))}
         </div>
-      </div>
+        </div>
+      )}
 
-      {showSliders && (
+      {activeTab === "controls" && showSliders && (
         <div className="mt-4 space-y-3 rounded-lg border border-border/60 bg-background p-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Adjust Mock Data, Targets, and Rules

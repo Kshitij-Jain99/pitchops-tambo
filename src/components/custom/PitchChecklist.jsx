@@ -204,6 +204,7 @@ const AUDIENCE_TEMPLATES = {
 };
 
 const DEFAULT_AUDIENCE = "seed_vc";
+const CHECKLIST_TABS = ["checklist", "rehearsal", "score"];
 
 function cloneTemplate(audienceKey) {
   const template = AUDIENCE_TEMPLATES[audienceKey] ?? AUDIENCE_TEMPLATES[DEFAULT_AUDIENCE];
@@ -275,6 +276,7 @@ export function PitchChecklist({
   storageKey = "pitchops_pitch_checklist_v2",
   targetDurationMin = 5,
 }) {
+  const [activeTab, setActiveTab] = useState("checklist");
   const [audience, setAudience] = useState(DEFAULT_AUDIENCE);
   const [sections, setSections] = useState(() => {
     if (Array.isArray(items) && items.length) return normalizeFlatItems(items);
@@ -547,14 +549,26 @@ export function PitchChecklist({
         </div>
       </div>
 
-      <div className="mt-3 grid gap-2 rounded-lg border border-border/70 bg-background p-3 text-xs text-muted-foreground md:grid-cols-4">
-        <p>Ready items: {totals.checkedItems.length}/{totals.allItems.length}</p>
-        <p>Gates passed: {totals.gatePassed}/{sections.length}</p>
-        <p>Evidence coverage: {totals.evidenceCovered}/{totals.checkedItems.length || 0}</p>
-        <p>Red-team coverage: {totals.riskCovered}/{totals.checkedItems.length || 0}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {CHECKLIST_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? "po-primary-btn capitalize" : "po-secondary-btn capitalize"}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
+      <div className="sticky top-0 z-10 mt-3 space-y-2 rounded-lg border border-border/70 bg-background p-3">
+        <div className="grid gap-2 text-xs text-muted-foreground md:grid-cols-4">
+          <p>Ready items: {totals.checkedItems.length}/{totals.allItems.length}</p>
+          <p>Gates passed: {totals.gatePassed}/{sections.length}</p>
+          <p>Evidence coverage: {totals.evidenceCovered}/{totals.checkedItems.length || 0}</p>
+          <p>Red-team coverage: {totals.riskCovered}/{totals.checkedItems.length || 0}</p>
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">Time Budget Tracker</p>
           <label className="text-xs text-muted-foreground">
@@ -573,7 +587,8 @@ export function PitchChecklist({
         </p>
       </div>
 
-      <div className="mt-4 space-y-3">
+      {activeTab === "checklist" && (
+        <div className="mt-4 space-y-3">
         {sections.map((section) => {
           const allRequiredDone = section.items.every((item) => !item.required || item.checked);
           return (
@@ -600,7 +615,7 @@ export function PitchChecklist({
                     type="button"
                     disabled={!allRequiredDone}
                     onClick={() => onToggleGate(section.id)}
-                    className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground disabled:cursor-not-allowed disabled:opacity-50 hover:bg-muted"
+                    className="po-secondary-btn h-8 px-3 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {section.gatePassed ? "Mark Fail" : "Mark Pass"}
                   </button>
@@ -674,7 +689,7 @@ export function PitchChecklist({
                 <button
                   type="button"
                   onClick={() => onAddPoint(section.id)}
-                  className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+                  className="po-primary-btn h-8 px-3"
                 >
                   Add
                 </button>
@@ -682,15 +697,17 @@ export function PitchChecklist({
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 rounded-lg border border-border/70 bg-background p-3">
+      {activeTab === "rehearsal" && (
+        <div className="mt-4 rounded-lg border border-border/70 bg-background p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">Rehearsal Run Log</p>
           <button
             type="button"
             onClick={isRehearsing ? onStopRun : onStartRun}
-            className="h-8 rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-muted"
+            className="po-primary-btn h-8 px-3"
           >
             {isRehearsing ? "Stop Run" : "Start Run"}
           </button>
@@ -707,9 +724,11 @@ export function PitchChecklist({
             <p className="text-xs text-muted-foreground">No rehearsal runs logged yet.</p>
           )}
         </div>
-      </div>
+        </div>
+      )}
 
-      <div className="mt-4 rounded-lg border border-border/70 bg-background p-3">
+      {activeTab === "score" && (
+        <div className="mt-4 rounded-lg border border-border/70 bg-background p-3">
         <p className="text-xs text-muted-foreground">Go/No-Go Score</p>
         <p className="mt-1 text-lg font-semibold text-foreground">{totals.readinessScore}% readiness</p>
         <p className="text-xs text-muted-foreground">
@@ -718,15 +737,16 @@ export function PitchChecklist({
         <div className="mt-2 space-y-1">
           {blockers.length ? (
             blockers.slice(0, 4).map((blocker, index) => (
-              <p key={`${blocker}-${index}`} className="text-xs text-amber-700">
+              <p key={`${blocker}-${index}`} className="text-xs po-status-warn">
                 {blocker}
               </p>
             ))
           ) : (
-            <p className="text-xs text-emerald-700">No critical blockers.</p>
+            <p className="text-xs po-status-ok">No critical blockers.</p>
           )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

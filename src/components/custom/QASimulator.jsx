@@ -90,6 +90,7 @@ const PROOF_SIGNALS = [
   "evidence",
   "benchmark",
 ];
+const QA_TABS = ["practice", "insights"];
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -361,6 +362,7 @@ export function QASimulator({
   answerPlaceholder = "Type your answer like you're in a live investor meeting...",
   storageKey = "pitchops_qa_simulator_v2",
 }) {
+  const [activeTab, setActiveTab] = useState("practice");
   const safeQuestions = useMemo(() => normalizeQuestions(questions), [questions]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -422,9 +424,9 @@ export function QASimulator({
   }, [answerStartedAt]);
 
   const scoreToneClass = useMemo(() => {
-    if (latestScore >= 80) return "text-emerald-400";
-    if (latestScore >= 60) return "text-amber-300";
-    return "text-red-300";
+    if (latestScore >= 80) return "po-status-ok";
+    if (latestScore >= 60) return "po-status-warn";
+    return "po-status-risk";
   }, [latestScore]);
 
   const heatmap = useMemo(() => {
@@ -558,7 +560,22 @@ export function QASimulator({
         </div>
       </div>
 
-      <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
+      <div className="mt-3 flex flex-wrap gap-2">
+        {QA_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? "po-primary-btn capitalize" : "po-secondary-btn capitalize"}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "practice" && (
+        <>
+          <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Tough Investor Question</p>
           <p className="text-xs text-muted-foreground">
@@ -571,7 +588,7 @@ export function QASimulator({
         </p>
       </div>
 
-      <label className="mt-3 block text-xs text-muted-foreground">
+          <label className="mt-3 block text-xs text-muted-foreground">
         Your Answer
         <textarea
           value={draftAnswer}
@@ -581,24 +598,24 @@ export function QASimulator({
         />
       </label>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={onSubmitAnswer}
-          className="rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground hover:bg-muted"
+          className="po-primary-btn"
         >
           Get AI Feedback
         </button>
         <button
           type="button"
           onClick={onNextQuestion}
-          className="rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground hover:bg-muted"
+          className="po-secondary-btn"
         >
           Next Question
         </button>
       </div>
 
-      <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
+          <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Feedback</p>
           <p className={`text-xs font-medium ${scoreToneClass}`}>
@@ -620,7 +637,7 @@ export function QASimulator({
         )}
       </div>
 
-      <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
+          <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
         <p className="text-xs text-muted-foreground">Adaptive Follow-Up Questions</p>
         <div className="mt-1 space-y-1">
           {followUps.length ? (
@@ -637,7 +654,7 @@ export function QASimulator({
         </div>
       </div>
 
-      <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
+          <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
         <p className="text-xs text-muted-foreground">Objection Rebuttal Drill</p>
         <p className="mt-1 text-sm text-foreground">
           {objection || "Submit an answer to receive a pushback objection."}
@@ -652,7 +669,7 @@ export function QASimulator({
           <button
             type="button"
             onClick={onScoreRebuttal}
-            className="rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground hover:bg-muted"
+            className="po-primary-btn"
           >
             Score Rebuttal
           </button>
@@ -662,8 +679,12 @@ export function QASimulator({
         </div>
         <p className="mt-1 text-xs text-foreground">{rebuttalFeedback}</p>
       </div>
+        </>
+      )}
 
-      <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
+      {activeTab === "insights" && (
+        <>
+          <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Question Heatmap and Weakness Trends</p>
           <p className="text-xs text-muted-foreground">Attempts: {attemptLog.length}</p>
@@ -686,13 +707,13 @@ export function QASimulator({
           )}
         </div>
         {weakestCategory && (
-          <p className="mt-2 text-xs text-amber-700">
+          <p className="mt-2 text-xs po-status-warn">
             Current weakest category: {weakestCategory.categoryKey} ({weakestCategory.avgScore}% avg)
           </p>
         )}
       </div>
 
-      <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
+          <div className="mt-3 rounded-lg border border-border/70 bg-background p-3">
         <p className="text-xs text-muted-foreground">Answer Version Compare</p>
         {versionDelta ? (
           <div className="mt-1 space-y-1 text-xs text-foreground">
@@ -714,6 +735,8 @@ export function QASimulator({
           </p>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }

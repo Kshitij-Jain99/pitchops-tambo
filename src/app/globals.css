@@ -114,7 +114,46 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family:
+      "IBM Plex Sans",
+      "Avenir Next",
+      "Segoe UI",
+      sans-serif;
+    line-height: 1.45;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family:
+      "Space Grotesk",
+      "IBM Plex Sans",
+      "Segoe UI",
+      sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .po-primary-btn {
+    @apply rounded-md border border-primary/70 bg-primary px-3 py-2 text-xs text-primary-foreground transition hover:brightness-105;
+  }
+
+  .po-secondary-btn {
+    @apply rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground transition hover:bg-muted;
+  }
+
+  .po-status-ok {
+    @apply text-emerald-300;
+  }
+
+  .po-status-warn {
+    @apply text-amber-300;
+  }
+
+  .po-status-risk {
+    @apply text-red-300;
   }
 }
 
